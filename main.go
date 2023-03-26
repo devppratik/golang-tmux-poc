@@ -5,22 +5,25 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 
 	"git.sr.ht/~rockorager/tterm"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
-type Slide func(nextSlide func()) (title string, content tview.Primitive)
+type Slide func(name string, nextSlide func()) (title string, content tview.Primitive)
 
 // The application.
 var app = tview.NewApplication()
 
 // Starting point for the presentation.
 func main() {
-
 	// The presentation slides.
-	slides := []Slide{Bash}
+	slides := []Slide{
+		NewSlide,
+		NewSlide,
+	}
 
 	pages := tview.NewPages()
 
@@ -47,9 +50,9 @@ func main() {
 			ScrollToHighlight()
 	}
 	for index, slide := range slides {
-		title, primitive := slide(nextSlide)
+		title, primitive := slide("kite", nextSlide)
 		pages.AddPage(strconv.Itoa(index), primitive, true, index == 0)
-		fmt.Fprintf(info, `%d ["%d"][darkcyan]%s[white][""]  `, index+1, index, title)
+		fmt.Fprintf(info, `["%d"]%s[white][""]  `, index, fmt.Sprintf("%d %s", index+1, title))
 	}
 	info.Highlight("0")
 
@@ -64,42 +67,45 @@ func main() {
 		if event.Key() == tcell.KeyCtrlN {
 			nextSlide()
 			return nil
-		} else if event.Key() == tcell.KeyCtrlM {
+		} else if event.Key() == tcell.KeyCtrlP {
 			previousSlide()
 			return nil
 		} else if event.Key() == tcell.KeyCtrlA {
-			slides = append(slides, Python)
-			title, primitive := Python(nextSlide)
+			slides = append(slides, NewSlide)
+			title, primitive := NewSlide("ocm-container", nextSlide)
 			index := len(slides) - 1
 			pages.AddPage(strconv.Itoa(index), primitive, true, false)
-			fmt.Fprintf(info, `%d ["%d"][darkcyan]%s[white][""]  `, index+1, index, title)
+			fmt.Fprintf(info, `["%d"]%s[white][""]  `, index, fmt.Sprintf("%d %s", index+1, title))
+		} else if event.Key() == tcell.KeyCtrlE {
+			slideNum, _ := strconv.Atoi(info.GetHighlights()[0])
+			slides = Remove(slides, slideNum)
+			pages.RemovePage(strconv.Itoa(slideNum))
+			currText := info.GetText(false)
+			remText := info.GetRegionText(info.GetHighlights()[0])
+			res := strings.ReplaceAll(currText, remText, "")
+			previousSlide()
+			info.Clear()
+			fmt.Fprint(info, res)
+
 		}
 		return event
 	})
 
 	// Start the application.
-	if err := app.SetRoot(layout, true).EnableMouse(true).Run(); err != nil {
+	if err := app.SetRoot(layout, true).EnableMouse(false).Run(); err != nil {
 		panic(err)
 	}
 }
 
-func Bash(nextSlide func()) (title string, content tview.Primitive) {
+func NewSlide(name string, nextSlide func()) (title string, content tview.Primitive) {
 	cmd := exec.Command(os.Getenv("SHELL"))
 	term := tterm.NewTerminal(cmd)
-
 	term.SetBorder(true)
-	term.SetBorderPadding(1, 1, 1, 1)
-	term.SetTitle(" Welcome to bash")
+	term.SetTitle(" Welcome to kite ")
 	term.SetTitleColor(tcell.ColorBlue)
-	return "bash", term
+	return name, term
 }
 
-func Python(nextSlide func()) (title string, content tview.Primitive) {
-	containerName := "python"
-	cmd := exec.Command("python")
-	term := tterm.NewTerminal(cmd)
-
-	term.SetTitle(containerName)
-	term.SetTitleColor(tcell.ColorBlue)
-	return containerName, term
+func Remove(slice []Slide, s int) []Slide {
+	return append(slice[:s], slice[s+1:]...)
 }
