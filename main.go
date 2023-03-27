@@ -2,17 +2,11 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"os/exec"
 	"strconv"
-	"strings"
 
-	"git.sr.ht/~rockorager/tterm"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
-
-type Slide func(name string, nextSlide func()) (title string, content tview.Primitive)
 
 // The application.
 var app = tview.NewApplication()
@@ -20,10 +14,8 @@ var app = tview.NewApplication()
 // Starting point for the presentation.
 func main() {
 	// The presentation slides.
-	slides := []Slide{
-		NewSlide,
-		NewSlide,
-	}
+	tabSlides = append(tabSlides, *NewTab("kite"))
+	tabSlides = append(tabSlides, *NewTab("bash"))
 
 	pages := tview.NewPages()
 
@@ -39,20 +31,19 @@ func main() {
 	// Create the pages for all slides.
 	previousSlide := func() {
 		slide, _ := strconv.Atoi(info.GetHighlights()[0])
-		slide = (slide - 1 + len(slides)) % len(slides)
+		slide = (slide - 1 + len(tabSlides)) % len(tabSlides)
 		info.Highlight(strconv.Itoa(slide)).
 			ScrollToHighlight()
 	}
 	nextSlide := func() {
 		slide, _ := strconv.Atoi(info.GetHighlights()[0])
-		slide = (slide + 1) % len(slides)
+		slide = (slide + 1) % len(tabSlides)
 		info.Highlight(strconv.Itoa(slide)).
 			ScrollToHighlight()
 	}
-	for index, slide := range slides {
-		title, primitive := slide("kite", nextSlide)
-		pages.AddPage(strconv.Itoa(index), primitive, true, index == 0)
-		fmt.Fprintf(info, `["%d"]%s[white][""]  `, index, fmt.Sprintf("%d %s", index+1, title))
+	for _, tabSlide := range tabSlides {
+		pages.AddPage(strconv.Itoa(tabSlide.index), tabSlide.content, true, tabSlide.index == 0)
+		fmt.Fprintf(info, `["%d"]%s[white][""]  `, tabSlide.index, fmt.Sprintf("%d %s", tabSlide.index+1, tabSlide.title))
 	}
 	info.Highlight("0")
 
@@ -71,24 +62,16 @@ func main() {
 			previousSlide()
 			return nil
 		} else if event.Key() == tcell.KeyCtrlA {
-			slides = append(slides, NewSlide)
-			title, primitive := NewSlide("ocm-container-1", nextSlide)
-			index := len(slides) - 1
-			pages.AddPage(strconv.Itoa(index), primitive, true, false)
-			fmt.Fprintf(info, `["%d"]%s[white][""]  `, index, fmt.Sprintf("%d %s", index+1, title))
+			tabSlide := *NewTab("kite")
+			tabSlides = append(tabSlides, tabSlide)
+			pages.AddPage(strconv.Itoa(tabSlide.index), tabSlide.content, true, tabSlide.index == 0)
+			fmt.Fprintf(info, `["%d"]%s[white][""]  `, tabSlide.index, fmt.Sprintf("%d %s", tabSlide.index+1, tabSlide.title))
 		} else if event.Key() == tcell.KeyCtrlE {
 			slideNum, _ := strconv.Atoi(info.GetHighlights()[0])
-			slides = Remove(slides, slideNum)
+			Remove(info, slideNum)
 			pages.RemovePage(strconv.Itoa(slideNum))
-			currText := info.GetText(false)
-			remText := info.GetRegionText(info.GetHighlights()[0])
-			res := strings.ReplaceAll(currText, remText, "")
 			previousSlide()
-			info.Clear()
-			fmt.Fprint(info, res)
-
 		}
-		os.WriteFile("log.txt", []byte(event.Name()), 0644)
 		return event
 	})
 
@@ -96,17 +79,4 @@ func main() {
 	if err := app.SetRoot(layout, true).EnableMouse(false).Run(); err != nil {
 		panic(err)
 	}
-}
-
-func NewSlide(name string, nextSlide func()) (title string, content tview.Primitive) {
-	cmd := exec.Command(os.Getenv("SHELL"))
-	term := tterm.NewTerminal(cmd)
-	term.SetBorder(true)
-	term.SetTitle(fmt.Sprintf(" Welcome to %s ", name))
-	term.SetTitleColor(tcell.ColorBlue)
-	return name, term
-}
-
-func Remove(slice []Slide, s int) []Slide {
-	return append(slice[:s], slice[s+1:]...)
 }
