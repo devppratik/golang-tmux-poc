@@ -72,7 +72,7 @@ func main() {
 			return nil
 		} else if event.Key() == tcell.KeyCtrlA {
 			slides = append(slides, NewSlide)
-			title, primitive := NewSlide("ocm-container", nextSlide)
+			title, primitive := NewSlide("ocm-container-1", nextSlide)
 			index := len(slides) - 1
 			pages.AddPage(strconv.Itoa(index), primitive, true, false)
 			fmt.Fprintf(info, `["%d"]%s[white][""]  `, index, fmt.Sprintf("%d %s", index+1, title))
@@ -88,6 +88,7 @@ func main() {
 			fmt.Fprint(info, res)
 
 		}
+		os.WriteFile("log.txt", []byte(event.Name()), 0644)
 		return event
 	})
 
@@ -101,7 +102,7 @@ func NewSlide(name string, nextSlide func()) (title string, content tview.Primit
 	cmd := exec.Command(os.Getenv("SHELL"))
 	term := tterm.NewTerminal(cmd)
 	term.SetBorder(true)
-	term.SetTitle(" Welcome to kite ")
+	term.SetTitle(fmt.Sprintf(" Welcome to %s ", name))
 	term.SetTitleColor(tcell.ColorBlue)
 	return name, term
 }
