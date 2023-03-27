@@ -14,14 +14,15 @@ type tab struct {
 }
 
 var tabSlides []tab
+var regionIds []int
+var currentActivePage int = 0
+var totalPageCount int = -1
 
 func NewTab(name string, command string) *tab {
-	index := len(tabSlides)
-	if len(tabSlides) == 0 {
-		index = 0
-	}
+	totalPageCount += 1
+	regionIds = append(regionIds, totalPageCount)
 	return &tab{
-		index:   index,
+		index:   totalPageCount,
 		title:   name,
 		content: NewTabSlide(command),
 	}
