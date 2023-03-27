@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"os"
 	"strconv"
 
 	"github.com/gdamore/tcell/v2"
@@ -15,11 +13,7 @@ var pages = tview.NewPages()
 var info = tview.NewTextView()
 
 func main() {
-	// Initial Slides
-	tabSlides = append(tabSlides, *NewTab("kite", os.Getenv("SHELL")))
-	tabSlides = append(tabSlides, *NewTab("bash", os.Getenv("SHELL")))
-
-	// Input Methods and Handlers
+	// App Shorcuts Implementation
 	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyCtrlN {
 			nextSlide()
@@ -28,23 +22,15 @@ func main() {
 			previousSlide()
 			return nil
 		} else if event.Key() == tcell.KeyCtrlA {
-			tabSlide := *NewTab("bash", os.Getenv("SHELL"))
-			tabSlides = append(tabSlides, tabSlide)
-			pages.AddPage(strconv.Itoa(tabSlide.index), tabSlide.content, true, tabSlide.index == 0)
-			fmt.Fprintf(info, `["%d"]%s[white][""]  `, tabSlide.index, fmt.Sprintf("%d %s", tabSlide.index+1, tabSlide.title))
-			currentActivePage = tabSlide.index
-			info.Highlight(strconv.Itoa(currentActivePage)).
-				ScrollToHighlight()
+			addSlide()
 		} else if event.Key() == tcell.KeyCtrlE {
 			slideNum, _ := strconv.Atoi(info.GetHighlights()[0])
-			Remove(info, slideNum)
-			pages.RemovePage(strconv.Itoa(slideNum))
-			previousSlide()
+			removeSlide(slideNum)
 		}
 		return event
 	})
 
-	// Init the app
+	// Get the initial Config
 	layout := initTerminalMux()
 	// Start the application.
 	if err := app.SetRoot(layout, true).EnableMouse(false).Run(); err != nil {
