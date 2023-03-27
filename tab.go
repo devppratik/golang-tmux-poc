@@ -1,7 +1,6 @@
 package main
 
 import (
-	"os"
 	"os/exec"
 
 	"git.sr.ht/~rockorager/tterm"
@@ -16,22 +15,20 @@ type tab struct {
 
 var tabSlides []tab
 
-func NewTab(name string) *tab {
-	var index int
+func NewTab(name string, command string) *tab {
+	index := len(tabSlides)
 	if len(tabSlides) == 0 {
 		index = 0
-	} else {
-		index = len(tabSlides)
 	}
 	return &tab{
 		index:   index,
 		title:   name,
-		content: NewTabSlide(),
+		content: NewTabSlide(command),
 	}
 }
 
-func NewTabSlide() (content tview.Primitive) {
-	cmd := exec.Command(os.Getenv("SHELL"))
+func NewTabSlide(command string) (content tview.Primitive) {
+	cmd := exec.Command(command)
 	term := tterm.NewTerminal(cmd)
 	term.SetBorder(true)
 	return term

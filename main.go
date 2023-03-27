@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 
 	"github.com/gdamore/tcell/v2"
@@ -14,8 +15,8 @@ var app = tview.NewApplication()
 // Starting point for the presentation.
 func main() {
 	// The presentation slides.
-	tabSlides = append(tabSlides, *NewTab("kite"))
-	tabSlides = append(tabSlides, *NewTab("bash"))
+	tabSlides = append(tabSlides, *NewTab("kite", os.Getenv("SHELL")))
+	tabSlides = append(tabSlides, *NewTab("bash", os.Getenv("SHELL")))
 
 	pages := tview.NewPages()
 
@@ -62,10 +63,12 @@ func main() {
 			previousSlide()
 			return nil
 		} else if event.Key() == tcell.KeyCtrlA {
-			tabSlide := *NewTab("kite")
+			tabSlide := *NewTab("bash", os.Getenv("SHELL"))
 			tabSlides = append(tabSlides, tabSlide)
 			pages.AddPage(strconv.Itoa(tabSlide.index), tabSlide.content, true, tabSlide.index == 0)
 			fmt.Fprintf(info, `["%d"]%s[white][""]  `, tabSlide.index, fmt.Sprintf("%d %s", tabSlide.index+1, tabSlide.title))
+			info.Highlight(strconv.Itoa(tabSlide.index)).
+				ScrollToHighlight()
 		} else if event.Key() == tcell.KeyCtrlE {
 			slideNum, _ := strconv.Atoi(info.GetHighlights()[0])
 			Remove(info, slideNum)
