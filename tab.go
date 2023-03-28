@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os/exec"
 
 	"git.sr.ht/~rockorager/tterm"
@@ -15,16 +16,20 @@ type tab struct {
 }
 
 var Tabs []tab
-var regionIds []int
+var uiRegionIds []int
 var currentActivePage int = 0
 var totalPageCount int = -1
 
 // Creates and return a new tab
 func newTab(name string, command string) *tab {
 	totalPageCount += 1
-	regionIds = append(regionIds, totalPageCount)
+	uiRegionIds = append(uiRegionIds, totalPageCount)
+	index := len(Tabs)
+	if len(Tabs) == 0 {
+		index = 0
+	}
 	return &tab{
-		index:     totalPageCount,
+		index:     index,
 		title:     name,
 		primitive: newTabPrimitive(command),
 	}
@@ -35,5 +40,6 @@ func newTabPrimitive(command string) (content tview.Primitive) {
 	cmd := exec.Command(command)
 	term := tterm.NewTerminal(cmd)
 	term.SetBorder(true)
+	term.SetTitle(fmt.Sprintf(" Welcome to %s ", command))
 	return term
 }

@@ -11,7 +11,7 @@ import (
 // Move to the previous slide
 func previousSlide() {
 	currentActivePage = (currentActivePage - 1 + len(Tabs)) % len(Tabs)
-	info.Highlight(strconv.Itoa(regionIds[currentActivePage])).
+	info.Highlight(strconv.Itoa(uiRegionIds[currentActivePage])).
 		ScrollToHighlight()
 	inputBuffer = []rune{}
 }
@@ -19,16 +19,25 @@ func previousSlide() {
 // Move to the next slide
 func nextSlide() {
 	currentActivePage = (currentActivePage + 1) % len(Tabs)
-	info.Highlight(strconv.Itoa(regionIds[currentActivePage])).
+	info.Highlight(strconv.Itoa(uiRegionIds[currentActivePage])).
 		ScrollToHighlight()
 	inputBuffer = []rune{}
 }
 
+func indexOf(arr []int, ele int) int {
+	for index, item := range arr {
+		if item == ele {
+			return index
+		}
+	}
+	return -1
+}
+
 // Remove the slide with the given index
 func removeSlide(s int) {
-	Tabs = append(Tabs[:s], Tabs[s+1:]...)
-	regionIds = append(regionIds[:s], regionIds[s+1:]...)
-	totalPageCount = len(Tabs)
+	index := indexOf(uiRegionIds, s)
+	Tabs = append(Tabs[:index], Tabs[index+1:]...)
+	uiRegionIds = append(uiRegionIds[:index], uiRegionIds[index+1:]...)
 	info.Clear()
 	for index, tabSlide := range Tabs {
 		oldIndex := tabSlide.index
@@ -54,7 +63,7 @@ func addSlide() {
 func initTerminalMux() *tview.Flex {
 	// Initial Slides
 	Tabs = append(Tabs, *newTab("kite", os.Getenv("SHELL")))
-	Tabs = append(Tabs, *newTab("bash", os.Getenv("SHELL")))
+	Tabs = append(Tabs, *newTab("ocm-container", "ocm-container"))
 
 	// Set the bottom navigation bar
 	info.
