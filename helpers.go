@@ -41,7 +41,7 @@ func removeSlide(s int) {
 
 // Adds a slide to the end of currently present slides
 func addSlide() {
-	tabSlide := *newTab("bash", os.Getenv("SHELL"))
+	tabSlide := *newTab("ocm-container", os.Getenv("SHELL"))
 	Tabs = append(Tabs, tabSlide)
 	pages.AddPage(strconv.Itoa(tabSlide.index), tabSlide.primitive, true, tabSlide.index == 0)
 	fmt.Fprintf(info, `["%d"]%s[white][""]  `, tabSlide.index, fmt.Sprintf("%d %s", tabSlide.index+1, tabSlide.title))

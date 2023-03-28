@@ -5,7 +5,7 @@ This repository contains the proof of concept for made for [kite](https://github
 # Prerequisites
 Go installed in the local computer with version >= 1.18.
 
-[tterm](git.sr.ht/~rockorager/tterm/) Repository is used to implement the tmux approach.
+[tterm](https://git.sr.ht/~rockorager/tcell-term) Repository is used to implement the tmux approach.
 
 # Usage
 
