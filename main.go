@@ -16,34 +16,40 @@ var inputBuffer []rune
 func main() {
 	// App Shorcuts Implementation
 	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		// Move to the next Slide
 		if event.Key() == tcell.KeyCtrlN {
 			nextSlide()
 			return nil
+			// Move to the Previous Slide
 		} else if event.Key() == tcell.KeyCtrlP {
 			previousSlide()
 			return nil
+			// Add a new Slide
 		} else if event.Key() == tcell.KeyCtrlA {
 			addSlide()
+			return nil
+			// Delete the current active Slide
 		} else if event.Key() == tcell.KeyCtrlE {
 			slideNum, _ := strconv.Atoi(info.GetHighlights()[0])
 			removeSlide(slideNum)
-		} else if event.Key() == tcell.KeyRune {
-			inputBuffer = append(inputBuffer, event.Rune())
-			if string(inputBuffer) == "exit\n" {
-				app.Stop()
-				return nil
-			}
+			return nil
+			// TODO : Handle the buffer with more edge cases
+			// Handling Backspace with input buffer
 		} else if event.Key() == tcell.KeyBackspace || event.Key() == tcell.KeyBackspace2 {
 			if len(inputBuffer) > 0 {
 				inputBuffer = inputBuffer[:len(inputBuffer)-1]
 			}
+			// Working on the input buffer
+		} else if event.Key() == tcell.KeyRune {
+			inputBuffer = append(inputBuffer, event.Rune())
+			// Exit the current slide when exit command is typed
 		} else if event.Key() == tcell.KeyEnter {
 			if string(inputBuffer) == "exit" {
-				// Clear input buffer
 				inputBuffer = []rune{}
-				app.Stop()
-				return nil
+				slideNum, _ := strconv.Atoi(info.GetHighlights()[0])
+				removeSlide(slideNum)
 			}
+			inputBuffer = []rune{}
 		}
 		return event
 	})

@@ -13,6 +13,7 @@ func previousSlide() {
 	currentActivePage = (currentActivePage - 1 + len(Tabs)) % len(Tabs)
 	info.Highlight(strconv.Itoa(regionIds[currentActivePage])).
 		ScrollToHighlight()
+	inputBuffer = []rune{}
 }
 
 // Move to the next slide
@@ -20,6 +21,7 @@ func nextSlide() {
 	currentActivePage = (currentActivePage + 1) % len(Tabs)
 	info.Highlight(strconv.Itoa(regionIds[currentActivePage])).
 		ScrollToHighlight()
+	inputBuffer = []rune{}
 }
 
 // Remove the slide with the given index
@@ -46,6 +48,7 @@ func addSlide() {
 	currentActivePage = tabSlide.index
 	info.Highlight(strconv.Itoa(currentActivePage)).
 		ScrollToHighlight()
+	inputBuffer = []rune{}
 }
 
 func initTerminalMux() *tview.Flex {
